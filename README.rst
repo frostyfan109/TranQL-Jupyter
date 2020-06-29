@@ -1,7 +1,7 @@
 About
 -----
 
-TranQL-Jupyter introduces the %tranql_query magic for querying the TranQL interpreter within Jupyter.
+TranQL-Jupyter introduces the ``%tranql_query`` magic for querying the TranQL interpreter within Jupyter.
 Additionally, it adds utilties for working with and visualizing knowledge graphs using NetworkX, Seaborn, and Plotly.
 
 Installation
@@ -54,11 +54,11 @@ Interpreter options can be configured as follows:
 
 ::
 
-  %config TranQLMagic.asynchronous=False
+  In [2]: %config TranQLMagic.asynchronous=False
 
 And all options can be listed using ``%config TranQLMagic``
 
-``%tranql_query`` returns a KnowledgeGraph object which supports a variety of operations such as ``union``, ``difference``, and ``symmetric_difference``.
+A ``KnowledgeGraph`` object is returned by ``%tranql_query`` which supports a variety of operations such as ``union``, ``difference``, and ``symmetric_difference``.
 For the entire list, see `NetworkX Operators`_.
 
 .. _NetworkX Operators: https://networkx.github.io/documentation/stable/reference/algorithms/operators.html
