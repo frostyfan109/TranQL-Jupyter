@@ -8,7 +8,7 @@ class TranQLResponse:
 
 class KnowledgeGraph(NetworkxGraph):
     def __init__(self, knowledge_graph):
-        super().__init__(self)
+        super().__init__()
 
         self.build_networkx_graph(knowledge_graph)
 
