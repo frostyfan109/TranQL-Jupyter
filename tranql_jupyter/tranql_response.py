@@ -1,4 +1,12 @@
+import json
+import os
+from . import force_graph
 from tranql.tranql_schema import NetworkxGraph
+
+try:
+    import importlib.resources as pkg_resources
+except ImportError:
+    import importlib_resources as pkg_resources
 
 class TranQLResponse:
     def __init__(self, message):
@@ -11,6 +19,12 @@ class KnowledgeGraph(NetworkxGraph):
         super().__init__()
 
         self.build_networkx_graph(knowledge_graph)
+
+
+    @staticmethod
+    def mock():
+        mock_response = json.loads(pkg_resources.read_text(__package__, "mock.json"))
+        return KnowledgeGraph(mock_response["knowledge_graph"])
 
     # Build self.net from a knowledge graph
     def build_networkx_graph(self, knowledge_graph):
@@ -44,6 +58,12 @@ class KnowledgeGraph(NetworkxGraph):
                 edge[2]
             )
         return kg
+
+
+    # Define rendering methods
+    def render_force_graph(self):
+        return force_graph.render(self)
+
 
     # Define graph operations (see https://networkx.github.io/documentation/stable/reference/algorithms/operators.html)
     def simple_union(self, other_kg):
