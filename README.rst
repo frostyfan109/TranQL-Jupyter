@@ -59,6 +59,22 @@ Interpreter options can be configured as follows:
 And all options can be listed using ``%config TranQLMagic``
 
 A ``KnowledgeGraph`` object is returned by ``%tranql_query`` which supports a variety of operations such as ``union``, ``difference``, and ``symmetric_difference``.
-For the entire list, see `NetworkX Operators`_.
+For the entire list, see `NetworkX Operators`_. There are various ways to go about creating visualizations of a ``KnowledgeGraph``. The simplest is to use
+NetworkX's built in drawing methods:
+
+::
+
+  In [3]: import networkx as nx
+          nx.draw_networkx(knowledge_graph.net)
+
+It is important to note that a ``KnowledgeGraph`` is a just a wrapper of a NetworkX graph, and the underlying NetworkX instance has to be accessed
+with the ``net`` field.
+
+Additionally, a 3D force-directed graph can be rendered like so:
+
+::
+
+  In [4]: knowledge_graph.render_force_graph()
+
 
 .. _NetworkX Operators: https://networkx.github.io/documentation/stable/reference/algorithms/operators.html
