@@ -202,9 +202,14 @@ class KnowledgeGraph(NetworkxGraph):
     def symmetric_difference(self, other_kg):
         # Returns a KnowledgeGraph containing edges that exist in self or other_kg but not both
         return KnowledgeGraph(nx.symmetric_difference(self.net, other_kg.net))
+    def cartesian_product(self, other_kg):
+        # Returns a KnowledgeGraph of the Cartesian product of self and other_kg
+        return KnowledgeGraph(nx.cartesian_product(self.net, other_kg.net))
 
     # Override operators for graph operations
     def __add__(self, other):
         return self.simple_union(other)
     def __sub__(self, other):
         return self.difference(other)
+    def __mul__(self, other):
+        return self.cartesian_product(other)

@@ -36,7 +36,6 @@ def render(knowledge_graph, mode):
 <style>
 #%s canvas {
     width: 100%% !important;
-    height: 75%% !important;
 }
 </style>
 <script>
@@ -52,13 +51,23 @@ require(['%s', 'https://cdn.jsdelivr.net/npm/element-resize-detector@1.2.1/dist/
     };
     const resizeDetector = resizeMaker({ strategy: 'scroll' });
     const container = document.querySelector("#%s");
-    container.style.width = "100%%";
-    container.style.height = "100%%";
-    const graph = ForceGraph()(container).graphData(data);
+    const graph = ForceGraph()(container).graphData(data)
+                                         .height(400);
     resizeDetector.listenTo(container, function(element) {
         graph.width(container.querySelector("canvas").offsetWidth);
-        graph.height(container.querySelector("canvas").offsetHeight);
+        // graph.height(container.querySelector("canvas").offsetHeight);
     });
+    window.graph = graph;
+    // Prevent a memory leak by uninstalling the detector upon unmount
+    // Could use a MutationObserver but it's not really worth the effort,
+    // since uninstalling isn't time sensitive, it just has to get done eventually
+    const removedInterval = setInterval(() => {
+        if (!document.contains(container)) {
+            resizeDetector.uninstall(container);
+            graph.graphData({nodes: [], links: []});
+            clearInterval(removedInterval);
+        }
+    }, 1000);
 
 });
 </script>
