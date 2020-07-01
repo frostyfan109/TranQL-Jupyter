@@ -1,5 +1,9 @@
 import json
 import os
+import networkx as nx
+import seaborn as sns
+import plotly.graph_objs as go
+from plotly.offline import iplot
 from . import force_graph
 from tranql.tranql_schema import NetworkxGraph
 
@@ -18,12 +22,24 @@ class KnowledgeGraph(NetworkxGraph):
     def __init__(self, knowledge_graph):
         super().__init__()
 
-        self.build_networkx_graph(knowledge_graph)
+        if isinstance(knowledge_graph, dict):
+            self.build_networkx_graph(knowledge_graph)
+        else:
+            # Constructed with existing NetworkX graph
+            self.net = knowledge_graph
 
+
+    @classmethod
+    def mock1(cls):
+        return cls.mock("mock1.json")
+
+    @classmethod
+    def mock2(cls):
+        return cls.mock("mock2.json")
 
     @staticmethod
-    def mock():
-        mock_response = json.loads(pkg_resources.read_text(__package__, "mock.json"))
+    def mock(name):
+        mock_response = json.loads(pkg_resources.read_text(__package__, name))
         return KnowledgeGraph(mock_response["knowledge_graph"])
 
     # Build self.net from a knowledge graph
@@ -61,9 +77,110 @@ class KnowledgeGraph(NetworkxGraph):
 
 
     # Define rendering methods
-    def render_force_graph(self):
-        return force_graph.render(self)
+    def render_force_graph_3d(self):
+        return force_graph.render3d(self.build_knowledge_graph())
+    render_force_graph = render_force_graph_3d # alias
 
+    def render_force_graph_2d(self):
+        return force_graph.render2d(self.build_knowledge_graph())
+
+    def render_plotly_force_graph(self, title="Knowledge Graph"):
+        G = self.net.copy()
+        pos = nx.spring_layout(G)
+        for n, p in pos.items():
+            G.node[n]["pos"] = p
+
+        edge_trace = go.Scatter(
+            x=[],
+            y=[],
+            line={
+                "width": 0.5,
+                "color": "#888"
+            },
+            hoverinfo="none",
+            showlegend=False,
+            mode="lines"
+        )
+        for edge in G.edges():
+            x0, y0 = G.node[edge[0]]["pos"]
+            x1, y1 = G.node[edge[1]]["pos"]
+            edge_trace["x"] += (x0, x1, None)
+            edge_trace["y"] += (y0, y1, None)
+
+        node_trace = go.Scatter(
+            x=[],
+            y=[],
+            text=[],
+            mode="markers",
+            hoverinfo="text",
+            showlegend=False,
+            marker={
+                "size": 15,
+                "color": []
+            }
+        )
+        # Nodes are colored based on the first type in their `type` attribute - we need to generate a color palette that has enough colors
+        colored_types = []
+        for node in G.nodes(data=True):
+            properties = node[1]["attr_dict"]
+            colored_types.append(properties["type"][0])
+        # Remove duplicates
+        colored_types = list(set(colored_types))
+        palette = sns.color_palette("hls", len(colored_types)).as_hex()
+        color_dict = {colored_types[i]: palette[i] for i in range(len(colored_types))}
+
+        for node in G.nodes(data=True):
+            node, attr_dict = node
+            properties = attr_dict["attr_dict"]
+
+            x, y = G.node[node]["pos"]
+            node_trace["x"] += (x,) # comma for tuple
+            node_trace["y"] += (y,) # comma for tuple
+            node_trace["text"] += ((properties.get("name") or node),) # sometimes a node doesn't have name--if so, use its id
+            node_trace["marker"]["color"] += (color_dict[properties["type"][0]],)
+
+        fake_legend = []
+        for node_type in color_dict:
+            fake_legend.append(go.Scatter(
+                x=[None],
+                y=[None],
+                mode="markers",
+                marker={
+                    "size": 10,
+                    "color": color_dict[node_type]
+                },
+                legendgroup=node_type,
+                showlegend=True,
+                name=node_type
+            ))
+        fig = go.Figure(
+            data=[edge_trace, node_trace, *fake_legend],
+            layout=go.Layout(
+                title=title,
+                titlefont={
+                    "size": 16
+                },
+                showlegend=True,
+                hovermode="closest",
+                margin={
+                    "b": 20,
+                    "l": 5,
+                    "r": 5,
+                    "t": 40
+                },
+                xaxis={
+                    "showgrid": False,
+                    "zeroline": False,
+                    "showticklabels": False
+                },
+                yaxis={
+                    "showgrid": False,
+                    "zeroline": False,
+                    "showticklabels": False
+                }
+            )
+        )
+        return iplot(fig)
 
     # Define graph operations (see https://networkx.github.io/documentation/stable/reference/algorithms/operators.html)
     def simple_union(self, other_kg):
