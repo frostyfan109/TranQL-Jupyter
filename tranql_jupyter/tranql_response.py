@@ -4,6 +4,8 @@ import networkx as nx
 import seaborn as sns
 import plotly.graph_objs as go
 from plotly.offline import iplot
+from IPython.utils import capture
+from IPython.display import display, HTML
 from . import force_graph
 from tranql.tranql_schema import NetworkxGraph
 
@@ -41,6 +43,20 @@ class KnowledgeGraph(NetworkxGraph):
     def mock(name):
         mock_response = json.loads(pkg_resources.read_text(__package__, name))
         return KnowledgeGraph(mock_response["knowledge_graph"])
+
+    # @staticmethod
+    # def render_graph_matrix(render_method, kg_array):
+    #     out_array = []
+    #     for kg_row in kg_array:
+    #         for data in kg_row:
+    #             if isinstance(data, list):
+    #                 knowledge_graph = data[0]
+    #                 args = data[1:]
+    #             else:
+    #                 knowledge_graph = data
+    #                 args = []
+    #             render_method(knowledge_graph, *args)
+
 
     # Build self.net from a knowledge graph
     def build_networkx_graph(self, knowledge_graph):
@@ -206,6 +222,86 @@ class KnowledgeGraph(NetworkxGraph):
         # Returns a KnowledgeGraph of the Cartesian product of self and other_kg
         return KnowledgeGraph(nx.cartesian_product(self.net, other_kg.net))
 
+    def simple_difference(self, other_kg):
+        # Return a KnowledgeGraph containing all nodes/edges in self that are not in other_kg
+
+        # nx.create_empty_copy will return a MultiDiGraph with all nodes in self.net but 0 edges (retaining properties of nodes)
+        new = KnowledgeGraph(nx.create_empty_copy(self.net))
+
+        # Go through and propogate edges that only exist in self.net
+        # It is important that new.net currently has all the nodes of self.net - otherwise, when we create a new edge,
+        # it will automatically add a node if that node doesn't exist yet (with no properties)
+        for edge in self.net.edges(keys=True, data=True):
+            source, target, key, properties = edge
+            # Only add edge to new if other_kg doesn't have the edge
+            if not other_kg.net.has_edge(source, target, key):
+                new.add_edge(source, key, target, properties)
+
+        # Now we can remove all nodes that exist in other_kg
+        new.net.remove_nodes_from(n for n in self.net if n in other_kg.net)
+
+        return new
+
+    def simple_intersection(self, other_kg, nodes=True, edges=True):
+        # Return a KnowledgeGraph containing only nodes/edges that exist in both self and other_kg
+        # Default behavior is to do the intersection of both nodes and edges, but edge intersection may not be desireable
+
+        # First, establish which has the fewest edges
+        if self.net.number_of_edges() <= other_kg.net.number_of_edges():
+            least_edges = self
+            most_edges = other_kg
+        else:
+            least_edges = other_kg
+            most_edges = self
+
+        # Create a graph containing the union of the node sets
+        # This is just to retain node properties, and will be fixed later
+        new = KnowledgeGraph(nx.MultiDiGraph())
+        new.net.add_nodes_from(
+            list(self.net.nodes(data=True)) +
+            list(other_kg.net.nodes(data=True))
+        )
+        if edges:
+            for edge in least_edges.net.edges(keys=True, data=True):
+                source, target, key, properties = edge
+                # Only add edge to new if both graphs have the edge
+                if other_kg.net.has_edge(source, target, key):
+                    new.add_edge(source, key, target, properties)
+
+        # Remove all nodes from new that aren't in both self and other_kg
+        # Generator statement so convert new.net to tuple so it doesn't change size during iteration
+        if nodes: new.net.remove_nodes_from(n for n in tuple(new.net) if not (n in self.net and n in other_kg.net))
+
+        return new
+
+    def simple_node_intersection(self, other_kg):
+        return self.simple_intersection(other_kg, nodes=True, edges=False)
+
+
+    """
+    # nx.difference requires identical node sets and doesn't preserve edge attributes
+    def edge_difference(self, other):
+        # self_kg, other_kg = self.union_nodes(other)
+
+        return KnowledgeGraph(difference(self.net, other.net))
+
+    def edge_intersection(self, other):
+        return KnowledgeGraph(intersection(self.net, other.net))
+
+
+    def union_nodes(self, other):
+        union = self.simple_union(other) # get all nodes
+        union.net.remove_edges_from(list(union.net.edges)) # remove edges
+
+        self_kg = KnowledgeGraph(union.net.copy())
+        self_kg.net.add_edges_from(self.net.edges(data=True))
+
+        other_kg = KnowledgeGraph(union.net.copy())
+        other_kg.net.add_edges_from(other.net.edges(data=True))
+
+        return self_kg, other_kg
+    """
+
     # Override operators for graph operations
     def __add__(self, other):
         return self.simple_union(other)
@@ -213,3 +309,38 @@ class KnowledgeGraph(NetworkxGraph):
         return self.difference(other)
     def __mul__(self, other):
         return self.cartesian_product(other)
+
+
+# Reimplemtnations of NetworkX operators
+# See: https://networkx.github.io/documentation/stable/_modules/networkx/algorithms/operators/binary.html
+"""
+def difference(G, H):
+    # Temporary reimplementation of networkx.difference that retains node/edge attributes
+    R = nx.create_empty_copy(G)
+    edges = G.edges(keys=True, data=True)
+    for e in edges:
+        source, target, predicate, properties = e
+        if not H.has_edge(source, target, key=predicate):
+            R.add_edge(source, target, key=predicate, **properties)
+
+    return R
+
+def intersection(G, H):
+    # Temporary reimplemtnation of networkx.intersection that retains node/edge attributes
+    R = nx.create_empty_copy(G)
+
+    if G.number_of_edges() <= H.number_of_edges():
+        edges = G.edges(keys=True, data=True)
+        for e in edges:
+            source, target, predicate, properties = e
+            if H.has_edge(source, target, key=predicate):
+                R.add_edge(source, target, key=predicate, **properties)
+    else:
+        edges = H.edges(keys=True, data=True)
+        for e in edges:
+            source, target, predicate, properties = e
+            if G.has_edge(source, target, key=predicate):
+                R.add_edge(source, target, key=predicate, **properties)
+
+    return R
+"""

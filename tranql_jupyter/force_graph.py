@@ -30,12 +30,13 @@ def render(knowledge_graph, mode):
         raise ValueError(f'Unrecognized mode "{mode}"')
     # Strip .js because for some reason requirejs really wants to add it onto the end making it ".js.js"
     if url[-3:] == ".js": url = url[:-3]
-    id = f"force-graph-{max_id}" + str(max_id)
+    id = f"force-graph-{max_id}"
     return display(HTML("""
 <div id="%s"></div>
 <style>
 #%s canvas {
     width: 100%% !important;
+    border: 1px solid gray;
 }
 </style>
 <script>
@@ -51,6 +52,7 @@ require(['%s', 'https://cdn.jsdelivr.net/npm/element-resize-detector@1.2.1/dist/
     };
     const resizeDetector = resizeMaker({ strategy: 'scroll' });
     const container = document.querySelector("#%s");
+    container.style.overflow = "hidden";
     const graph = ForceGraph()(container).graphData(data)
                                          .height(400);
     resizeDetector.listenTo(container, function(element) {
@@ -58,7 +60,8 @@ require(['%s', 'https://cdn.jsdelivr.net/npm/element-resize-detector@1.2.1/dist/
         // graph.height(container.querySelector("canvas").offsetHeight);
     });
     window.graph = graph;
-    // Prevent a memory leak by uninstalling the detector upon unmount
+    // Prevent a memory leak by emptying force graph upon unmount
+    // also uninstall the detector
     // Could use a MutationObserver but it's not really worth the effort,
     // since uninstalling isn't time sensitive, it just has to get done eventually
     const removedInterval = setInterval(() => {

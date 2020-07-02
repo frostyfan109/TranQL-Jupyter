@@ -24,9 +24,24 @@ or
   cd TranQL-Jupyter
   python setup.py install
 
-Currently, TranQL_ is not a pip-installable package. Therefore, it must be installed and directly
-interfaced with by this package in order to function properly. Before running the notebook server,
-the TranQL path needs to be specified as an environment variable:
+TranQL-Jupyter also requires the `TranQL interpreter`_, which is not on PyPI either. It takes a sizeable
+amount of time to manually install (~5-10 minutes), so you can either manually install in the same manner as TranQL-Jupyter:
+
+::
+
+  git clone https://github.com/frostyfan109/tranql.git
+  pip install ./TranQL
+
+or
+
+::
+
+  git clone https://github.com/frostyfan109/tranql.git
+  cd TranQL
+  python setup.py install
+
+or, you can export an environment variable prior to running the notebook server which points to
+your own installation of TranQL:
 
 Linux: ::
 
@@ -38,7 +53,7 @@ Windows: ::
   set tranql_path=C:\\random_dir\\tranql
   jupyter notebook
 
-.. _TranQL: https://github.com/NCATS-Tangerine/tranql
+.. _TranQL interpreter: https://github.com/NCATS-Tangerine/tranql
 
 #####
 Usage
