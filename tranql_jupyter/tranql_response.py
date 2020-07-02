@@ -242,7 +242,7 @@ class KnowledgeGraph(NetworkxGraph):
 
         return new
 
-    def simple_intersection(self, other_kg, nodes=True, edges=True):
+    def simple_intersection(self, other_kg, edges=True):
         # Return a KnowledgeGraph containing only nodes/edges that exist in both self and other_kg
         # Default behavior is to do the intersection of both nodes and edges, but edge intersection may not be desireable
 
@@ -268,14 +268,51 @@ class KnowledgeGraph(NetworkxGraph):
                 if other_kg.net.has_edge(source, target, key):
                     new.add_edge(source, key, target, properties)
 
+        else:
+            # Otherwise, add all edges from both graphs - this is probably the right behavior? (as oppposed to adding just self's edges)
+            new.add_edges_from(
+                list(self.net.edges(data=True)) +
+                list(other_kg.net.edges(data=True))
+            )
+
         # Remove all nodes from new that aren't in both self and other_kg
         # Generator statement so convert new.net to tuple so it doesn't change size during iteration
-        if nodes: new.net.remove_nodes_from(n for n in tuple(new.net) if not (n in self.net and n in other_kg.net))
+        new.net.remove_nodes_from(n for n in tuple(new.net) if not (n in self.net and n in other_kg.net))
 
         return new
 
     def simple_node_intersection(self, other_kg):
-        return self.simple_intersection(other_kg, nodes=True, edges=False)
+        return self.simple_intersection(other_kg, edges=False)
+
+    def simple_symmetric_difference(self, other_kg):
+        # Return a KnowledgeGraph containing only nodes/edges that exist in self or other_kg but not both
+
+        # Create a graph containing the symmetric difference of both node sets
+        # Can't use built in `set->symmetric_difference` algorithm because properties have to be retained
+        # and dicts aren't hashable
+        new = KnowledgeGraph(nx.MultiDiGraph())
+
+        new.net.add_nodes_from(
+            n for n in self.net.nodes(data=True) if n[0] not in other_kg.net
+        )
+        new.net.add_nodes_from(
+            n for n in other_kg.net.nodes(data=True) if n[0] not in self.net
+        )
+
+        for edge in self.net.edges(keys=True, data=True):
+            source, target, key, properties = edge
+            # Only add edge if other doesn't have it (and make sure it doesn't add edges for nodes that don't exist anymore)
+            if not other_kg.net.has_edge(source, target, key) and new.has_node(source) and new.has_node(target):
+                new.add_edge(source, key, target, properties)
+
+        for edge in other_kg.net.edges(keys=True, data=True):
+            source, target, key, properties = edge
+            # Only add edge if self doesn't have it (and make sure it doesn't add edges for nodes that don't exist anymore)
+            if not self.net.has_edge(source, target, key) and new.has_node(source) and new.has_node(target):
+                new.add_edge(source, key, target, properties)
+
+        return new
+
 
 
     """
@@ -306,7 +343,7 @@ class KnowledgeGraph(NetworkxGraph):
     def __add__(self, other):
         return self.simple_union(other)
     def __sub__(self, other):
-        return self.difference(other)
+        return self.simple_difference(other)
     def __mul__(self, other):
         return self.cartesian_product(other)
 
