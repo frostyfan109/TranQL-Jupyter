@@ -2,11 +2,14 @@ import json
 import os
 import networkx as nx
 import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
 import plotly.graph_objs as go
 from plotly.offline import iplot
 from IPython.utils import capture
 from IPython.display import display, HTML
 from . import force_graph
+from . import graph_utils
 from tranql.tranql_schema import NetworkxGraph
 
 try:
@@ -23,6 +26,9 @@ class TranQLResponse:
 class KnowledgeGraph(NetworkxGraph):
     def __init__(self, knowledge_graph):
         super().__init__()
+
+        # You may set the graph_name of a KnowledgeGraph for statistical visualizations
+        self.graph_name = None
 
         if isinstance(knowledge_graph, dict):
             self.build_networkx_graph(knowledge_graph)
@@ -43,6 +49,46 @@ class KnowledgeGraph(NetworkxGraph):
     def mock(name):
         mock_response = json.loads(pkg_resources.read_text(__package__, name))
         return KnowledgeGraph(mock_response["knowledge_graph"])
+
+
+    # Statistical visualizations
+    @staticmethod
+    def plot_graph_sizes(*graphs):
+        def format_data(graph):
+            if isinstance(graph, KnowledgeGraph):
+                knowledge_graph = KnowledgeGraph
+                name = knowledge_graph.graph_name
+            else:
+                knowledge_graph, name = graph
+            kg = knowledge_graph.build_knowledge_graph()
+            return {
+                "name": name,
+                "nodes": len(kg["nodes"]),
+                "edges": len(kg["edges"])
+            }
+        pd.DataFrame([format_data(graph) for graph in graphs]).set_index("name").plot(kind="bar", stacked=True)
+        plt.show()
+
+    @staticmethod
+    def plot_type_distributions(*graphs):
+        def format_data(graph):
+            if isinstance(graph, KnowledgeGraph):
+                knowledge_graph = KnowledgeGraph
+                name = knowledge_graph.graph_name
+            else:
+                knowledge_graph, name = graph
+            return [
+                pd.DataFrame(knowledge_graph.build_knowledge_graph()["nodes"]),
+                name
+            ]
+        data = [format_data(graph) for graph in graphs]
+        for graph_data in data:
+            graph_data[0] = graph_utils.plot_dict(graph_utils.count_series_list(
+                graph_data[0].type
+            ))
+        plt.legend([i for i, j in data], [j for i, j in data])
+        plt.title("Type Distributions")
+        plt.show()
 
     # @staticmethod
     # def render_graph_matrix(render_method, kg_array):
