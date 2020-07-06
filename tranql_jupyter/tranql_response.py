@@ -55,26 +55,40 @@ class KnowledgeGraph(NetworkxGraph):
     # Statistical visualizations
     @staticmethod
     def plot_graph_sizes(*graphs):
-        def format_data(graph):
+        names = []
+        node_values = []
+        edge_values = []
+        for graph in graphs:
             if isinstance(graph, KnowledgeGraph):
-                knowledge_graph = KnowledgeGraph
+                knowledge_graph = graph
                 name = knowledge_graph.graph_name
             else:
                 knowledge_graph, name = graph
             kg = knowledge_graph.build_knowledge_graph()
-            return {
-                "name": name,
-                "nodes": len(kg["nodes"]),
-                "edges": len(kg["edges"])
-            }
-        pd.DataFrame([format_data(graph) for graph in graphs]).set_index("name").plot(kind="bar", stacked=True)
-        plt.show()
+            names.append(name)
+            node_values.append(len(kg["nodes"]))
+            edge_values.append(len(kg["edges"]))
+
+        fig = go.Figure(data=[
+            go.Bar(
+                name="Nodes",
+                x=names,
+                y=node_values
+            ),
+            go.Bar(
+                name="Edges",
+                x=names,
+                y=edge_values
+            )
+        ])
+        fig.update_layout(title_text="Graph Sizes", barmode="group")
+        fig.show()
 
     @staticmethod
     def plot_type_distributions(*graphs):
         def format_data(graph):
             if isinstance(graph, KnowledgeGraph):
-                knowledge_graph = KnowledgeGraph
+                knowledge_graph = graph
                 name = knowledge_graph.graph_name
             else:
                 knowledge_graph, name = graph
@@ -94,7 +108,7 @@ class KnowledgeGraph(NetworkxGraph):
                 y=list(graph_data[0].values())
             ) for graph_data in data
         ])
-        fig.update_layout(title_text="Type Distributions", barmode="relative")
+        fig.update_layout(title_text="Type Distributions", barmode="stacked")
         fig.show()
 
         # plt.legend([i for i, j in data], [j for i, j in data])
@@ -214,11 +228,11 @@ class KnowledgeGraph(NetworkxGraph):
 
     # Define rendering methods
     def render_force_graph_3d(self, **kwargs):
-        return force_graph.render3d(self.build_knowledge_graph(), **kwargs)
+        return force_graph.render3d(self, **kwargs)
     render_force_graph = render_force_graph_3d # alias
 
     def render_force_graph_2d(self, **kwargs):
-        return force_graph.render2d(self.build_knowledge_graph(), **kwargs)
+        return force_graph.render2d(self, **kwargs)
 
     def render_plotly_force_graph(self, title="Knowledge Graph"):
         G = self.net.copy()

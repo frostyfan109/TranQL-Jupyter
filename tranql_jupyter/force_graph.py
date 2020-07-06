@@ -34,7 +34,8 @@ def render(knowledge_graph, mode, title=None, width=None, height=400):
     id = f"force-graph-{max_id}"
 
     if not isinstance(title, str):
-        title = "Knowledge Graph " + str(max_id)
+        if isinstance(knowledge_graph.graph_name, str): title = knowledge_graph.graph_name
+        else: title = "Knowledge Graph " + str(max_id)
     if not isinstance(width, int):
         width = None
     if not isinstance(height, int):
@@ -107,7 +108,7 @@ require(['%s', 'https://cdn.jsdelivr.net/npm/element-resize-detector@1.2.1/dist/
             id,
             id,
             url,
-            json.dumps(knowledge_graph),
+            json.dumps(knowledge_graph.build_knowledge_graph()),
             id,
             json.dumps(width),
             json.dumps(height),
