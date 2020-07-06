@@ -16,7 +16,7 @@ def render2d(knowledge_graph, **kwargs):
 def render3d(knowledge_graph, **kwargs):
     return render(knowledge_graph, Mode.RENDER_3D, **kwargs)
 
-def render(knowledge_graph, mode, width=None, height=400):
+def render(knowledge_graph, mode, title=None, width=None, height=400):
     # Very poor docs on how to use JavaScript component libraries within server extensions
     # See source of py_d3 for reference of how they do it
     # Note: max_id is what py_d3 does to identify elements
@@ -33,15 +33,18 @@ def render(knowledge_graph, mode, width=None, height=400):
 
     id = f"force-graph-{max_id}"
 
+    if not isinstance(title, str):
+        title = "Knowledge Graph " + str(max_id)
     if not isinstance(width, int):
         width = None
     if not isinstance(height, int):
         height = None
 
     return display(HTML("""
-<div id="%s"></div>
+<div class="%s title-container"></div>
+<div class="%s graph-container"></div>
 <style>
-#%s canvas {
+.%s canvas {
     width: 100%% !important;
     border: 1px solid gray;
 }
@@ -58,12 +61,25 @@ require(['%s', 'https://cdn.jsdelivr.net/npm/element-resize-detector@1.2.1/dist/
         }))
     };
     const resizeDetector = resizeMaker({ strategy: 'scroll' });
-    const container = document.querySelector("#%s");
+    const container = document.querySelector(".%s.graph-container");
     container.style.overflow = "hidden";
     const width = %s;
     const height = %s;
     if (width !== null) container.style.width = width + "px";
     if (height !== null) container.style.height = height + "px";
+
+    const titleElement = document.querySelector(".%s.title-container");
+
+    const title = document.createElement("span");
+    title.textContent = "%s";
+    title.style.fontWeight = "bold";
+
+    const titleInfo = document.createElement("span");
+    titleInfo.textContent = ` (${parsed_kg.nodes.length} nodes, ${parsed_kg.edges.length} edges)`;
+
+    titleElement.appendChild(title);
+    titleElement.appendChild(titleInfo);
+
     const graph = ForceGraph()(container).graphData(data)
                                          .width(width)
                                          .height(height);
@@ -89,10 +105,13 @@ require(['%s', 'https://cdn.jsdelivr.net/npm/element-resize-detector@1.2.1/dist/
     """ % (
             id,
             id,
+            id,
             url,
             json.dumps(knowledge_graph),
             id,
             json.dumps(width),
-            json.dumps(height)
+            json.dumps(height),
+            id,
+            title
         )
     ))

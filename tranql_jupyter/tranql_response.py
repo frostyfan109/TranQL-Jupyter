@@ -84,12 +84,28 @@ class KnowledgeGraph(NetworkxGraph):
             ]
         data = [format_data(graph) for graph in graphs]
         for graph_data in data:
-            graph_data[0] = graph_utils.plot_dict(graph_utils.count_series_list(
+            graph_data[0] = graph_utils.count_series_list(
                 graph_data[0].type
-            ))
-        plt.legend([i for i, j in data], [j for i, j in data])
-        plt.title("Type Distributions")
-        plt.show()
+            )
+        fig = go.Figure(data=[
+            go.Bar(
+                name=graph_data[1],
+                x=list(graph_data[0].keys()),
+                y=list(graph_data[0].values())
+            ) for graph_data in data
+        ])
+        fig.update_layout(title_text="Type Distributions", barmode="relative")
+        fig.show()
+
+        # plt.legend([i for i, j in data], [j for i, j in data])
+        # for graph_data in data:
+        #     graph_data[0] = graph_utils.count_series_list(
+        #         graph_data[0].type
+        #     )
+        # bars = graph_utils.plot_dicts([graph_data[0] for graph_data in data])
+        # plt.legend(bars, [j for i,j in data])
+        # plt.title("Type Distributions")
+        # plt.show()
 
 
     # ipywidgets.Output doesn't respect script tags, which makes this not work
