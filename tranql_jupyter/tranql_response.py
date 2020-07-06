@@ -108,7 +108,7 @@ class KnowledgeGraph(NetworkxGraph):
                 y=list(graph_data[0].values())
             ) for graph_data in data
         ])
-        fig.update_layout(title_text="Type Distributions", barmode="stacked")
+        fig.update_layout(title_text="Type Distributions", barmode="stack")
         fig.show()
 
         # plt.legend([i for i, j in data], [j for i, j in data])
