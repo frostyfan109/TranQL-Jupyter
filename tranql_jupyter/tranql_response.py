@@ -1,5 +1,6 @@
 import json
 import os
+import ipywidgets
 import networkx as nx
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -90,18 +91,75 @@ class KnowledgeGraph(NetworkxGraph):
         plt.title("Type Distributions")
         plt.show()
 
-    # @staticmethod
-    # def render_graph_matrix(render_method, kg_array):
-    #     out_array = []
-    #     for kg_row in kg_array:
-    #         for data in kg_row:
-    #             if isinstance(data, list):
-    #                 knowledge_graph = data[0]
-    #                 args = data[1:]
-    #             else:
-    #                 knowledge_graph = data
-    #                 args = []
-    #             render_method(knowledge_graph, *args)
+
+    # ipywidgets.Output doesn't respect script tags, which makes this not work
+    '''
+    @staticmethod
+    def render_graph_grid(kg_array, render_method=None):
+        """
+        3 ways to pass in a value for rendering:
+            1) kg_array=[[my_kg, ...]], render_method=KnowledgeGraph.x_method
+                - KnowledgeGraph.x_method(my_kg) will be called
+            2) kg_array=[[(my_kg, 5, 3), ...]], render_method=KnowledgeGraph.x_method
+                - KnowledgeGraph.x_method(my_kg, 5, 3) will be called
+            3) kg_array=[[my_kg.render_x, ...]], render_method=None
+                - my_kg.render_x() will be called
+
+        Example:
+            1) KnowledgeGraph.render_graph_grid([
+                [kg1, kg2],
+                [kg1 + kg2]
+               ], KnowledgeGraph.render_force_graph_2d)
+
+            2) KnowledgeGraph.render_graph_grid([
+                [kg1, (kg2, 5)],
+                [     kg3     ]
+               ], KnowledgeGraph.render_force_graph_2d)
+
+            3) KnowledgeGraph.render_graph_grid([
+                [kg1.render_force_graph_2d, kg2.render_force_graph_2d],
+                [(kg1 + kg2).render_force_graph_3d]
+            ])
+        """
+        # display captures
+        output = []
+        for kg_row in kg_array:
+            out_row = []
+            for graph_args in kg_row:
+                output_widget = ipywidgets.Output()
+                with output_widget:
+                    # Check if function reference
+                    if callable(graph_args):
+                        # E.g. `lambda: my_graph.render_force_graph_2d(test_arg, other_arg=5)`
+                        # or just `my_graph.render_force_graph_2d`
+                        graph_args()
+                    elif isinstance(graph_args, (list, tuple)):
+                        # E.g. graph_args=(x, 5, my_graph) for def graph_func(test_var, num_tries, graph)
+                        render_method(*graph_args)
+                    else:
+                        # E.g. graph_args=graph for def render_graph(graph)
+                        render_method(graph_args)
+                out_row.append(output_widget)
+            output.append(out_row)
+        for row in output:
+            """
+            [
+                [
+                    [RichOutput],
+                    [RichOutput]
+                ],
+                [
+                    [RichOutput]
+                ]
+            ]
+            """
+            hbox = ipywidgets.HBox(row)
+            # Then display the row
+            display(hbox)
+
+    '''
+
+
 
 
     # Build self.net from a knowledge graph
@@ -139,12 +197,12 @@ class KnowledgeGraph(NetworkxGraph):
 
 
     # Define rendering methods
-    def render_force_graph_3d(self):
-        return force_graph.render3d(self.build_knowledge_graph())
+    def render_force_graph_3d(self, **kwargs):
+        return force_graph.render3d(self.build_knowledge_graph(), **kwargs)
     render_force_graph = render_force_graph_3d # alias
 
-    def render_force_graph_2d(self):
-        return force_graph.render2d(self.build_knowledge_graph())
+    def render_force_graph_2d(self, **kwargs):
+        return force_graph.render2d(self.build_knowledge_graph(), **kwargs)
 
     def render_plotly_force_graph(self, title="Knowledge Graph"):
         G = self.net.copy()

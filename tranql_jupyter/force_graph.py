@@ -11,12 +11,12 @@ class Mode:
     RENDER_2D = 0
     RENDER_3D = 1
 
-def render2d(knowledge_graph):
-    return render(knowledge_graph, Mode.RENDER_2D)
-def render3d(knowledge_graph):
-    return render(knowledge_graph, Mode.RENDER_3D)
+def render2d(knowledge_graph, **kwargs):
+    return render(knowledge_graph, Mode.RENDER_2D, **kwargs)
+def render3d(knowledge_graph, **kwargs):
+    return render(knowledge_graph, Mode.RENDER_3D, **kwargs)
 
-def render(knowledge_graph, mode):
+def render(knowledge_graph, mode, width=None, height=400):
     # Very poor docs on how to use JavaScript component libraries within server extensions
     # See source of py_d3 for reference of how they do it
     # Note: max_id is what py_d3 does to identify elements
@@ -30,7 +30,14 @@ def render(knowledge_graph, mode):
         raise ValueError(f'Unrecognized mode "{mode}"')
     # Strip .js because for some reason requirejs really wants to add it onto the end making it ".js.js"
     if url[-3:] == ".js": url = url[:-3]
+
     id = f"force-graph-{max_id}"
+
+    if not isinstance(width, int):
+        width = None
+    if not isinstance(height, int):
+        height = None
+
     return display(HTML("""
 <div id="%s"></div>
 <style>
@@ -53,8 +60,13 @@ require(['%s', 'https://cdn.jsdelivr.net/npm/element-resize-detector@1.2.1/dist/
     const resizeDetector = resizeMaker({ strategy: 'scroll' });
     const container = document.querySelector("#%s");
     container.style.overflow = "hidden";
+    const width = %s;
+    const height = %s;
+    if (width !== null) container.style.width = width + "px";
+    if (height !== null) container.style.height = height + "px";
     const graph = ForceGraph()(container).graphData(data)
-                                         .height(400);
+                                         .width(width)
+                                         .height(height);
     resizeDetector.listenTo(container, function(element) {
         graph.width(container.querySelector("canvas").offsetWidth);
         // graph.height(container.querySelector("canvas").offsetHeight);
@@ -79,6 +91,8 @@ require(['%s', 'https://cdn.jsdelivr.net/npm/element-resize-detector@1.2.1/dist/
             id,
             url,
             json.dumps(knowledge_graph),
-            id
+            id,
+            json.dumps(width),
+            json.dumps(height)
         )
     ))
