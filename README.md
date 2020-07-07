@@ -85,7 +85,7 @@ The `KnowledgeGraph` class has two built-in methods for usage with Pandas:
   - `from_dataframe_dict` converts the former's structure back to a
     `KnowledgeGraph`
 
-# Visualization
+### Visualization
 
 There are various ways to go about creating visualizations of a
 `KnowledgeGraph`. A 3D force-directed graph can be rendered like
@@ -112,7 +112,7 @@ By default, only a few columns are shown in the table view. The
 `columns` keyword argument can be used to specify which columns to
 include. If columns is `None`, all columns will be displayed.
 
-## Statistical Visualizations
+### Statistical Visualizations
 
 Various graphs can be rendered to compare data from multiple knowledge
 graphs. These are static methods of `KnowledgeGraph`, and in order to
@@ -198,11 +198,11 @@ node/edge in the graphs:
 | render_edge_table(columns: list\|tuple) | Renders a tabular view of the edges in the knowledge graph | columns: `["source_id", "target_id", "type", "weight"]` |
 
 ### Statistical Visualization
-| Method | Description |
-| --- | --- |
-| static plot_graph_sizes(*graphs) | Plots a grouped bar chart of the amount of nodes and edges in each graph |
-| static plot_node_type_distributions(*graphs) | Plots a grouped bar chart of the amount of each node type in the graphs |
-| static plot_edge_type_distributions(*graphs) | Plots a grouped bar chart of the amount of each edge type in the graphs |
+| Method | Description | Arguments |
+| --- | --- | --- |
+| static plot_graph_sizes(*graphs: tuple\|KnowledgeGraph) | Plots a grouped bar chart of the amount of nodes and edges in each graph | If the graph does not have its `graph_name` set, then it should be a tuple of `(graph: KnowledgeGraph, name: str)` |
+| static plot_node_type_distributions(*graphs: tuple\|KnowledgeGraph) | Plots a grouped bar chart of the amount of each node type in the graphs | See above |
+| static plot_edge_type_distributions(*graphs: tuple\|KnowledgeGraph) | Plots a grouped bar chart of the amount of each edge type in the graphs | See above |
 
 ### Misc
 | Method | Description | Returns |
@@ -211,7 +211,7 @@ node/edge in the graphs:
 
 | Field | Description | Default |
 | --- | --- | :--: |
-| graph_name: str | When set, nethods that require a title or name will use this if nothing is provided | `None` |
+| graph_name: str | When set, methods that require a title or name will use this if nothing is provided | `None` |
 
 ## Demos
 
