@@ -10,6 +10,7 @@ from plotly.offline import iplot
 from IPython.utils import capture
 from IPython.display import display, HTML
 from . import force_graph
+from . import table_view
 from . import graph_utils
 from tranql.tranql_schema import NetworkxGraph
 
@@ -52,6 +53,29 @@ class KnowledgeGraph(NetworkxGraph):
         return KnowledgeGraph(mock_response["knowledge_graph"])
 
 
+    # Pandas integration
+    @staticmethod
+    def from_dataframe_dict(df_dict):
+        """ Turns a KnowledgeGraph to a dict of two dataframes (nodes & edges) """
+        # A knowledge graph cannot be represented by a data frame, but nodes and edges can be their own separate data frames
+        nodes = df_dict["nodes"].to_dict("records")
+        edges = df_dict["edges"].to_dict("records")
+
+        return KnowledgeGraph({
+            "nodes": nodes,
+            "edges": edges
+        })
+
+    def to_dataframe_dict(self):
+        kg = self.build_knowledge_graph()
+
+        return {
+            "nodes": pd.DataFrame(kg["nodes"]),
+            "edges": pd.DataFrame(kg["edges"])
+        }
+
+
+
     # Statistical visualizations
     @staticmethod
     def plot_graph_sizes(*graphs):
@@ -84,8 +108,16 @@ class KnowledgeGraph(NetworkxGraph):
         fig.update_layout(title_text="Graph Sizes", barmode="group")
         fig.show()
 
+    @classmethod
+    def plot_node_type_distributions(cls, *graphs):
+        return cls.plot_type_distributions("nodes", graphs)
+
+    @classmethod
+    def plot_edge_type_distributions(cls, *graphs):
+        return cls.plot_type_distributions("edges", graphs)
+
     @staticmethod
-    def plot_type_distributions(*graphs):
+    def plot_type_distributions(type, graphs):
         def format_data(graph):
             if isinstance(graph, KnowledgeGraph):
                 knowledge_graph = graph
@@ -93,7 +125,7 @@ class KnowledgeGraph(NetworkxGraph):
             else:
                 knowledge_graph, name = graph
             return [
-                pd.DataFrame(knowledge_graph.build_knowledge_graph()["nodes"]),
+                pd.DataFrame(knowledge_graph.build_knowledge_graph()[type]),
                 name
             ]
         data = [format_data(graph) for graph in graphs]
@@ -108,7 +140,7 @@ class KnowledgeGraph(NetworkxGraph):
                 y=list(graph_data[0].values())
             ) for graph_data in data
         ])
-        fig.update_layout(title_text="Type Distributions", barmode="stack")
+        fig.update_layout(title_text="Type Distributions", barmode="group")
         fig.show()
 
         # plt.legend([i for i, j in data], [j for i, j in data])
@@ -188,9 +220,6 @@ class KnowledgeGraph(NetworkxGraph):
             display(hbox)
 
     '''
-
-
-
 
     # Build self.net from a knowledge graph
     def build_networkx_graph(self, knowledge_graph):
@@ -331,6 +360,11 @@ class KnowledgeGraph(NetworkxGraph):
             )
         )
         return iplot(fig)
+
+    def render_node_table(self, columns=("name", "id", "type")):
+        return table_view.render_nodes(self, columns=columns)
+    def render_edge_table(self, columns=("source_id", "target_id", "type", "weight")):
+        return table_view.render_edges(self, columns=columns)
 
     # Define graph operations (see https://networkx.github.io/documentation/stable/reference/algorithms/operators.html)
     def simple_union(self, other_kg):

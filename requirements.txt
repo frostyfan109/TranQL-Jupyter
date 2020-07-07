@@ -2,3 +2,4 @@ ipython>=1.0
 ipywidgets==7.0
 networkx==2.2
 seaborn
+itables>=0.2.1
