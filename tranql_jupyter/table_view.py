@@ -1,6 +1,6 @@
 from IPython.display import display, HTML
-import itables.interactive
-from itables import show
+# import itables.interactive
+# from itables import show
 import json
 
 max_id = 0

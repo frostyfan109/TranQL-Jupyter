@@ -2,7 +2,7 @@ from IPython.core.magic import (
     Magics, cell_magic, line_magic,
     magics_class
 )
-# from IPython.core.magic_arguments import argument, magic_arguments, parse_argstring
+import nest_asyncio
 try:
     from tranql import TranQL
 except ImportError:
@@ -19,6 +19,11 @@ try:
 except ImportError:
     from IPython.config.configurable import Configurable
     from IPython.utils.traitlets import Bool, Int, Unicode
+
+
+# Patch asyncio to allow nested use of asyncio.run and loop.run_until_complete()
+# This is required for usage of asyncio within Jupyter (utilized by TranQL interpreter)
+nest_asyncio.apply()
 
 
 @magics_class

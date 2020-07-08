@@ -361,7 +361,7 @@ class KnowledgeGraph(NetworkxGraph):
         )
         return iplot(fig)
 
-    def render_node_table(self, columns=("name", "id", "type")):
+    def render_node_table(self, columns=("name", "id", "type", "equivalent_identifiers")):
         return table_view.render_nodes(self, columns=columns)
     def render_edge_table(self, columns=("source_id", "target_id", "type", "weight")):
         return table_view.render_edges(self, columns=columns)
@@ -391,7 +391,7 @@ class KnowledgeGraph(NetworkxGraph):
         return KnowledgeGraph(nx.cartesian_product(self.net, other_kg.net))
 
     def simple_difference(self, other_kg):
-        # Return a KnowledgeGraph containing all nodes/edges in self that are not in other_kg
+        # Returns a KnowledgeGraph containing all nodes/edges in self that are not in other_kg
 
         # nx.create_empty_copy will return a MultiDiGraph with all nodes in self.net but 0 edges (retaining properties of nodes)
         new = KnowledgeGraph(nx.create_empty_copy(self.net))
@@ -411,7 +411,7 @@ class KnowledgeGraph(NetworkxGraph):
         return new
 
     def simple_intersection(self, other_kg, edges=True):
-        # Return a KnowledgeGraph containing only nodes/edges that exist in both self and other_kg
+        # Returns a KnowledgeGraph containing only nodes/edges that exist in both self and other_kg
         # Default behavior is to do the intersection of both nodes and edges, but edge intersection may not be desireable
 
         # First, establish which has the fewest edges
@@ -453,7 +453,7 @@ class KnowledgeGraph(NetworkxGraph):
         return self.simple_intersection(other_kg, edges=False)
 
     def simple_symmetric_difference(self, other_kg):
-        # Return a KnowledgeGraph containing only nodes/edges that exist in self or other_kg but not both
+        # Returns a KnowledgeGraph containing only nodes/edges that exist in self or other_kg but not both
 
         # Create a graph containing the symmetric difference of both node sets
         # Can't use built in `set->symmetric_difference` algorithm because properties have to be retained

@@ -5,6 +5,12 @@ TranQL interpreter within Jupyter. It also adds utilties for
 working with and visualizing knowledge graphs using NetworkX, Seaborn,
 and Plotly through its `KnowledgeGraph` class.
 
+# Examples
+
+Various demo notebooks can be found in the [test_notebooks](/test_notebooks) directory.
+For a comprehensive example, see [this notebook](/test_notebooks/Demo%20Notebook.ipynb).
+
+
 # Installation
 
 TranQL-Jupyter is not on PyPI, and must be installed manually:
@@ -144,20 +150,22 @@ node/edge in the graphs:
               named_knowledge_graph
             )
 
-## API Reference
+# API Reference
 
-### Importing
+## Importing
 ```
 %load_ext tranql_jupyter
 ```
 
-### Querying
+## Querying
 ```
 %tranql_query query_body
 ```
-| Name | Description | Default |
+| Magic function | Description | Returns |
 | --- | --- | :--: |
-| query_body: str | Standard TranQL query | |
+| %tranql_query(query_body: str) | Standard TranQL query | KnowledgeGraph |
+
+## KnowledgeGraph
 
 ### Operations
 
@@ -168,6 +176,12 @@ node/edge in the graphs:
 | simple_intersection(other_kg: KnowledgeGraph) | Returns a KnowledgeGraph containing only nodes/edges that exist in both self and other_kg | other_kg: *required* |
 | simple_symmetric_difference(other_kg: KnowledgeGraph) | Returns a KnowledgeGraph containing only nodes/edges that exist in self or other_kg but not both | other_kg: *required* |
 | \_\_sub__(other_kg: KnowledgeGraph) | Overloads the `-` operator. Alias of `simple_difference` | other_kg: *required* |
+```
+K1 = %tranql_query ...
+K2 = %tranql_query ...
+simple_intersection = K1.simple_intersection(K2)
+simple_difference = K1 - K2
+```
 
 #### NetworkX
 | Method | Description | Default |
@@ -181,12 +195,24 @@ node/edge in the graphs:
 | difference(other_kg: KnowledgeGraph) | Returns a KnowledgeGraph containing edges that exist in self but not in other_kg | other_kg: *required* |
 | symmetric_difference(other_kg: KnowledgeGraph) | Returns a KnowledgeGraph containing edges that exist in self or other_kg but not both | other_kg: *required* |
 | cartesian_product(other_kg: KnowledgeGraph) | Returns a KnowledgeGraph of the Cartesian product of self and other_kg | other_kg: *required* |
+```
+K1 = %tranql_query ...
+K2 = %tranql_query ...
+intersection = K1.intersection(K2)
+symmetric_difference = K1.symmetric_difference(K2)
+```
+
 
 ### Pandas
 | Method | Description | Default | Returns |
 | --- | --- | :--: | :--: |
 | to_dataframe_dict() | Converts the `KnowledgeGraph` to a dict of DataFrames |  | `{"nodes": DataFrame, "edges": DataFrame}` |
 | static from_dataframe_dict(df_dict: dict) | Converts the return type of `to_dataframe_dict` back into a `KnowledgeGraph` | df_dict: *required* | `KnowledgeGraph` |
+```
+K1 = %tranql_query ...
+edge_df = K1.to_dataframe_dict()["edges"]
+edge_df.head()
+```
 
 ### Visualization
 | Method | Description | Default |
@@ -196,6 +222,10 @@ node/edge in the graphs:
 | render_plotly_force_graph(title: str) | Renders a force graph of the knowledge graph using Plotly | title: `Knowledge Graph` |
 | render_node_table(columns: list\|tuple) | Renders a tabular view of the nodes in the knowledge graph | columns: `["name", "id", "type", "equivalent_identifiers"]` |
 | render_edge_table(columns: list\|tuple) | Renders a tabular view of the edges in the knowledge graph | columns: `["source_id", "target_id", "type", "weight"]` |
+```
+K1 = %tranql_query ...
+K1.render_force_graph_2d(title="A Knowledge Graph")
+```
 
 ### Statistical Visualization
 | Method | Description | Arguments |
@@ -203,16 +233,28 @@ node/edge in the graphs:
 | static plot_graph_sizes(*graphs: tuple\|KnowledgeGraph) | Plots a grouped bar chart of the amount of nodes and edges in each graph | If the graph does not have its `graph_name` set, then it should be a tuple of `(graph: KnowledgeGraph, name: str)` |
 | static plot_node_type_distributions(*graphs: tuple\|KnowledgeGraph) | Plots a grouped bar chart of the amount of each node type in the graphs | See above |
 | static plot_edge_type_distributions(*graphs: tuple\|KnowledgeGraph) | Plots a grouped bar chart of the amount of each edge type in the graphs | See above |
+```
+from tranql_jupyter import KnowledgeGraph
+
+K1 = %tranql_query ...
+K1.graph_name = "Knowledge Graph #1"
+K2 = %tranql_query ...
+KnowledgeGraph.plot_graph_sizes(
+    K1,
+    (K2, "My KG (2)")
+)
+```
 
 ### Misc
 | Method | Description | Returns |
 | --- | --- | :--: |
 | build_knowledge_graph() | Builds a knowledge graph in dictionary form | `{"nodes": dict[], "edges": dict[]}` |
+```
+import json
+K1 = %tranql_query ...
+json.dump(K1.build_knowledge_graph(), open("my_kg.json", "w+"))
+```
 
 | Field | Description | Default |
 | --- | --- | :--: |
 | graph_name: str | When set, methods that require a title or name will use this if nothing is provided | `None` |
-
-## Demos
-
-For a comprehensive demo, see the `test_notebooks/test_mock` notebook.
