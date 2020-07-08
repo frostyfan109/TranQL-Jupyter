@@ -2,6 +2,7 @@ import json
 import os
 import ipywidgets
 import networkx as nx
+import netcomp as nc
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -366,7 +367,7 @@ class KnowledgeGraph(NetworkxGraph):
     def render_edge_table(self, columns=("source_id", "target_id", "type", "weight")):
         return table_view.render_edges(self, columns=columns)
 
-    # Define graph operations (see https://networkx.github.io/documentation/stable/reference/algorithms/operators.html)
+    """ Define graph operations (see https://networkx.github.io/documentation/stable/reference/algorithms/operators.html) """
     def simple_union(self, other_kg):
         # Returns a KnowledgeGraph of the simple union of self and other_kg (node sets do not have to be disjoint)
         return KnowledgeGraph(nx.compose(self.net, other_kg.net))
@@ -482,30 +483,31 @@ class KnowledgeGraph(NetworkxGraph):
         return new
 
 
+    """ Define NetComp operations (see: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0228728, https://github.com/peterewills/NetComp) """
+    def deltacon0(self, other_kg, **kwargs):
+        A, B = make_adjacency_matrices(self, other_kg)
+        return nc.deltacon0(A, B, **kwargs)
 
-    """
-    # nx.difference requires identical node sets and doesn't preserve edge attributes
-    def edge_difference(self, other):
-        # self_kg, other_kg = self.union_nodes(other)
+    def vertex_edge_distance(self, other_kg):
+        A, B = make_adjacency_matrices(self, other_kg)
+        return nc.vertex_edge_distance(A, B)
 
-        return KnowledgeGraph(difference(self.net, other.net))
+    def lambda_dist(self, other_kg, **kwargs):
+        A, B = make_adjacency_matrices(self, other_kg)
+        return nc.lambda_dist(A, B, **kwargs)
 
-    def edge_intersection(self, other):
-        return KnowledgeGraph(intersection(self.net, other.net))
+    def resistance_distance(self, other_kg, **kwargs):
+        A, B = make_adjacency_matrices(self, other_kg)
+        return nc.resistance_distance(A, B, **kwargs)
 
+    def conductance_matrix(self):
+        A, = make_adjacency_matrices(self) # make_adjacency_matrices returns a list, so trailing comma is shorthand of [0] at end
+        return nc.conductance_matrix(A)
 
-    def union_nodes(self, other):
-        union = self.simple_union(other) # get all nodes
-        union.net.remove_edges_from(list(union.net.edges)) # remove edges
+    def resistance_matrix(self, **kwargs):
+        A, = make_adjacency_matrices(self)
+        return nc.resistance_matrix(A, **kwargs)
 
-        self_kg = KnowledgeGraph(union.net.copy())
-        self_kg.net.add_edges_from(self.net.edges(data=True))
-
-        other_kg = KnowledgeGraph(union.net.copy())
-        other_kg.net.add_edges_from(other.net.edges(data=True))
-
-        return self_kg, other_kg
-    """
 
     # Override operators for graph operations
     def __add__(self, other):
@@ -515,6 +517,8 @@ class KnowledgeGraph(NetworkxGraph):
     def __mul__(self, other):
         return self.cartesian_product(other)
 
+def make_adjacency_matrices(*knowledge_graphs):
+    return [nx.adjacency_matrix(G.net) for G in knowledge_graphs]
 
 # Reimplemtnations of NetworkX operators
 # See: https://networkx.github.io/documentation/stable/_modules/networkx/algorithms/operators/binary.html
