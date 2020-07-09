@@ -47,14 +47,38 @@ require(['https://cdnjs.cloudflare.com/ajax/libs/ag-grid/23.2.1/ag-grid-communit
             return acc;
         }, []);
     }
-    const columnDefs = columns.map((columnName) => ({
-        headerName: columnName,
-        field: columnName
-    }));
-    new AgGrid.Grid(table, {
+    function makeColumn(columnName) {
+        return {
+            headerName: columnName,
+            field: columnName,
+            sortable: true,
+            filter: true
+        };
+    }
+    const columnDefs = columns.map(makeColumn);
+    const tableRef = new AgGrid.Grid(table, {
         columnDefs: columnDefs,
         rowData: parsed_kg
     });
+
+    const header = document.createElement("div");
+
+    const addColumn = document.createElement("input");
+    addColumn.placeholder = "Add a column...";
+
+    const btn = document.createElement("button");
+    btn.textContent = "Add";
+    btn.onClick = function() {
+        const columnName = addColumn.value;
+        addColumn.value = "";
+        const defs = tableRef.gridOptions.columnDefs;
+        defs.push(makeColumn(columnName));
+        tableRef.gridOptions.api.setColumnDefs(defs);
+    }
+
+    header.appendChild(addColumn);
+    header.appendChild(btn);
+    // table.parentNode.insertBefore(header, table);
 })
 </script>
     """ % (table_id, json.dumps(graph), json.dumps(columns), table_id)))
