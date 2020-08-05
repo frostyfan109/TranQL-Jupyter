@@ -27,7 +27,7 @@ class TranQLResponse:
         self.question_graph = message["question_graph"]
 
 class KnowledgeGraph(NetworkxGraph):
-    def __init__(self, knowledge_graph):
+    def __init__(self, knowledge_graph, sources=None):
         super().__init__()
 
         # You may set the graph_name of a KnowledgeGraph for statistical visualizations
@@ -38,6 +38,8 @@ class KnowledgeGraph(NetworkxGraph):
         else:
             # Constructed with existing NetworkX graph
             self.net = knowledge_graph
+
+        self.sources = sources
 
 
     @classmethod
@@ -367,10 +369,52 @@ class KnowledgeGraph(NetworkxGraph):
     def render_edge_table(self, columns=("source_id", "target_id", "type", "weight")):
         return table_view.render_edges(self, columns=columns)
 
+
+    """ Define helper methods for working with a knowledge graph """
+    def get_nodes_by_property(self, property, value):
+        nodes = []
+        for node in self.net.nodes(data=True):
+            if property in node[1]["attr_dict"] and node[1]["attr_dict"][property] == value:
+                nodes.append(node[1]["attr_dict"])
+        return nodes
+    def get_edges_by_property(self, property, value):
+        edges = []
+        for edge in self.net.edges(data=True):
+            if property in edge[2] and edge[2][property] == value:
+                edges.append(edge[2])
+        return edges
+    def get_node_by_name(self, name):
+        nodes = self.get_nodes_by_property("name", name)
+        if len(nodes) == 0:
+            return None
+        else:
+            return nodes[0]
+    def get_node_by_id(self, id):
+        nodes = self.get_nodes_by_property("id", id)
+        if len(nodes) == 0:
+            return None
+        else:
+            return nodes[0]
+    def get_edge(self, source, target, pred=None):
+        # If `pred` is None, returns a list of all edges between `source` and `target`
+        # Else returns single edge
+        if pred == None:
+            try:
+                return list(self.net[source][target].values())
+            except KeyError:
+                # No edges between the two
+                return []
+        else:
+            # Return None if no edge exists
+            try:
+                return self.net[source][target][pred]
+            except KeyError:
+                return None
+
     """ Define graph operations (see https://networkx.github.io/documentation/stable/reference/algorithms/operators.html) """
     def simple_union(self, other_kg):
         # Returns a KnowledgeGraph of the simple union of self and other_kg (node sets do not have to be disjoint)
-        return KnowledgeGraph(nx.compose(self.net, other_kg.net))
+        return KnowledgeGraph(nx.compose(self.net, other_kg.net), sources=[self, other_kg])
     compose = simple_union # alias of simple_union
     def union(self, other_kg):
         # Returns a KnowledgeGraph of the union of self and other_kg  (node sets must be disjoint)
@@ -507,6 +551,9 @@ class KnowledgeGraph(NetworkxGraph):
     def resistance_matrix(self, **kwargs):
         A, = make_adjacency_matrices(self)
         return nc.resistance_matrix(A, **kwargs)
+
+
+    """ Define Reasoner Diff operations (see: https://github.com/frostyfan109/NCATS-ReasonerStdAPI-diff) """
 
 
     # Override operators for graph operations

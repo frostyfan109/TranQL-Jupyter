@@ -41,6 +41,20 @@ def render(knowledge_graph, mode, title=None, width=None, height=400):
     if not isinstance(height, int):
         height = None
 
+    kg = knowledge_graph.build_knowledge_graph()
+    graph_data = {"nodes": [], "links": []}
+    for node in kg["nodes"]:
+        graph_data["nodes"].append({
+            "id": node["id"],
+            "name": node["name"]
+        })
+    for edge in kg["edges"]:
+        graph_data["links"].append({
+            "source": edge["source_id"],
+            "target": edge["target_id"],
+            "name": edge["type"]
+        })
+
     return display(HTML("""
 <div class="%s title-container"></div>
 <div class="%s graph-container"></div>
@@ -52,15 +66,7 @@ def render(knowledge_graph, mode, title=None, width=None, height=400):
 </style>
 <script>
 require(['%s', 'https://cdn.jsdelivr.net/npm/element-resize-detector@1.2.1/dist/element-resize-detector.min.js'], function(ForceGraph, resizeMaker) {
-    const parsed_kg = %s;
-    const data = {
-        nodes: parsed_kg.nodes.map((node) => ({ id: node.id, name: node.name })),
-        links: parsed_kg.edges.map((edge) => ({
-            source: edge.source_id,
-            target: edge.target_id,
-            name: edge.type
-        }))
-    };
+    const data = %s;
     const resizeDetector = resizeMaker({ strategy: 'scroll' });
     const container = document.querySelector(".%s.graph-container");
     container.style.overflow = "hidden";
@@ -76,7 +82,7 @@ require(['%s', 'https://cdn.jsdelivr.net/npm/element-resize-detector@1.2.1/dist/
     title.style.fontWeight = "bold";
 
     const titleInfo = document.createElement("span");
-    titleInfo.textContent = ` (${parsed_kg.nodes.length} nodes, ${parsed_kg.edges.length} edges)`;
+    titleInfo.textContent = ` (${data.nodes.length} nodes, ${data.links.length} edges)`;
 
     titleElement.appendChild(title);
     titleElement.appendChild(titleInfo);
@@ -108,7 +114,7 @@ require(['%s', 'https://cdn.jsdelivr.net/npm/element-resize-detector@1.2.1/dist/
             id,
             id,
             url,
-            json.dumps(knowledge_graph.build_knowledge_graph()),
+            json.dumps(graph_data),
             id,
             json.dumps(width),
             json.dumps(height),

@@ -5,3 +5,4 @@ networkx>=2.2
 seaborn
 itables>=0.2.1
 nest-asyncio>=1.3.3
+git+git://github.com/frostyfan109/NCATS-ReasonerStdAPI-diff.git

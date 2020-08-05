@@ -245,16 +245,25 @@ KnowledgeGraph.plot_graph_sizes(
 )
 ```
 
-### Misc
+### Misc/Utility
 | Method | Description | Returns |
 | --- | --- | :--: |
 | build_knowledge_graph() | Builds a knowledge graph in dictionary form | `{"nodes": dict[], "edges": dict[]}` |
+| get_nodes_by_property(property: str, value: any) | Gets all nodes with matching property value | `dict[]` |
+| get_edges_by_property(property: str, value: any) | Gets all edges with matching property value | `dict[]` |
+| get_node_by_name(name: str) | Gets a node by its `name` property | `dict | None` |
+| get_node_by_id(id: str) | Gets a node by its `id` property | `dict | None` |
+| get_edge(source: str, target: str, predicate: str\|None) | Gets an edge/edges between `source` and `target`. Returns list of edges if predicate is `None`. Returns `None` if edge `source-[predicate]->target` doesn't exist. | `dict | dict[] | None` |
 ```
 import json
 K1 = %tranql_query ...
 json.dump(K1.build_knowledge_graph(), open("my_kg.json", "w+"))
+
+asthma_node = K1.get_node_by_name("childhood onset asthma")
+gene = K1.get_node_by_id("HGNC:9816")
+edges = K1.get_edge(asthma_node["id"], gene["id"])
 ```
 
 | Field | Description | Default |
 | --- | --- | :--: |
-| graph_name: str | When set, methods that require a title or name will use this if nothing is provided | `None` |
+| KnowledgeGraph().graph_name: str | When set, methods that require a title or name will use this if nothing is provided. | `None` |
