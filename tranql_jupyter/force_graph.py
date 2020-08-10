@@ -46,7 +46,7 @@ def render(knowledge_graph, mode, title=None, width=None, height=400):
     for node in kg["nodes"]:
         graph_data["nodes"].append({
             "id": node["id"],
-            "name": node["name"]
+            "name": node.get("name", "<no name>")
         })
     for edge in kg["edges"]:
         graph_data["links"].append({
