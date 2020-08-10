@@ -21,13 +21,38 @@ except ImportError:
     import importlib_resources as pkg_resources
 
 class TranQLResponse:
+    """ Initialize a TranQL response. Currently implemented for extensibility.
+
+    :ivar knowledge_graph: The knowledge graph component of the response
+    :vartype knowledge_graph: :class:`.KnowledgeGraph`
+    :ivar knowledge_map: The knowledge map component of the response
+    :vartype knowledge_map: dict
+    :ivar question_graph: The question graph component of the response
+    :vartype question_graph: dict
+    """
     def __init__(self, message):
+        """
+        :param message: A dictionary with keys "knowledge_map", "knowledge_graph", and "question_graph"
+        :type message: dict
+        """
         self.knowledge_graph = KnowledgeGraph(message["knowledge_graph"])
         self.knowledge_map = message["knowledge_map"]
         self.question_graph = message["question_graph"]
 
 class KnowledgeGraph(NetworkxGraph):
+    """ Initialize a TranQL knowledge graph. Includes various utilities for working with and visualizing knowledge graphs.
+
+    :ivar graph_name: A reference to the name of the graph. Not required, just helpful for some methods.
+    :vartype graph_name: str, None
+    :ivar net: Internal NetworkX instance of the graph. Should be used for any NetworkX-related operations. Modifications will result in mutation of the graph.
+    :vartype net: :class:`networkx.MultiDiGraph`
+    """
     def __init__(self, knowledge_graph, sources=None):
+        """
+        :param knowledge_graph: Either a dict containing the keys "nodes" and "edges" or a networkx.MultiDiGraph instance
+            with node/edge attributes structured in the same manner as done in :func:`~.KnowledgeGraph.build_networkx_graph`
+        :type knowledge_graph: dict, :class:`networkx.MultiDiGraph`
+        """
         super().__init__()
 
         # You may set the graph_name of a KnowledgeGraph for statistical visualizations
@@ -39,15 +64,21 @@ class KnowledgeGraph(NetworkxGraph):
             # Constructed with existing NetworkX graph
             self.net = knowledge_graph
 
+        # Garbage parameter that was being experimented with and never got removed (does nothing)
         self.sources = sources
 
 
     @classmethod
     def mock1(cls):
+        """ Returns a mock :class:`.KnowledgeGraph` containing the results of the query
+        select chemical_substance->gene->disease from "/graph/gamma/quick" where disease="asthma"
+        """
         return cls.mock("mock1.json")
 
     @classmethod
     def mock2(cls):
+        """ Returns a mock :class:`.KnowledgeGraph` containing the results of a query
+        """
         return cls.mock("mock2.json")
 
     @staticmethod
@@ -57,9 +88,30 @@ class KnowledgeGraph(NetworkxGraph):
 
 
     # Pandas integration
+    def to_dataframe_dict(self):
+        """ Turns the knowledge graph into a dictionary containing two dataframes "nodes" and "edges"
+
+        :return: A dict of "nodes" and "edges" dataframes
+        :rtype: dict
+        """
+        kg = self.build_knowledge_graph()
+
+        return {
+            "nodes": pd.DataFrame(kg["nodes"]),
+            "edges": pd.DataFrame(kg["edges"])
+        }
+
     @staticmethod
     def from_dataframe_dict(df_dict):
-        """ Turns a KnowledgeGraph to a dict of two dataframes (nodes & edges) """
+        """ Takes a dict containing keys "nodes" and "edges" and values of :class:`pandas.DataFrame`
+        and converts it into a knowledge graph instance
+
+        :param df_dict: A dictionary containing keys "nodes" and "edges"
+        :type df_dict: dict
+
+        :return: An instance of a :class:`.KnowledgeGraph`
+        :rtype: :class:`.KnowledgeGraph`
+        """
         # A knowledge graph cannot be represented by a data frame, but nodes and edges can be their own separate data frames
         nodes = df_dict["nodes"].to_dict("records")
         edges = df_dict["edges"].to_dict("records")
@@ -69,19 +121,16 @@ class KnowledgeGraph(NetworkxGraph):
             "edges": edges
         })
 
-    def to_dataframe_dict(self):
-        kg = self.build_knowledge_graph()
-
-        return {
-            "nodes": pd.DataFrame(kg["nodes"]),
-            "edges": pd.DataFrame(kg["edges"])
-        }
-
 
 
     # Statistical visualizations
     @staticmethod
     def plot_graph_sizes(*graphs):
+        """ Makes a Plotly graph displaying how many nodes and edges are in each graph
+
+        :param *graphs: Varargs of (title, :class:`.KnowledgeGraph`) or just :class:`.KnowledgeGraph` if :py:attr:`~graph_name` is set
+        :type *graphs: list
+        """
         names = []
         node_values = []
         edge_values = []
@@ -113,10 +162,20 @@ class KnowledgeGraph(NetworkxGraph):
 
     @classmethod
     def plot_node_type_distributions(cls, *graphs):
+        """ Makes a Plotly graph detailing how many nodes of each type there are in the graph
+
+        :param *graphs: Varargs of (title, :class:`.KnowledgeGraph`) or just :class:`.KnowledgeGraph` if :py:attr:`~graph_name` is set
+        :type *graphs: list
+        """
         return cls.plot_type_distributions("nodes", graphs)
 
     @classmethod
     def plot_edge_type_distributions(cls, *graphs):
+        """ Makes a Plotly graph detailing how many edges of each type there are in the graph
+
+        :param *graphs: Varargs of (title, :class:`.KnowledgeGraph`) or just :class:`.KnowledgeGraph` if :py:attr:`~graph_name` is set
+        :type *graphs: list
+        """
         return cls.plot_type_distributions("edges", graphs)
 
     @staticmethod
@@ -243,6 +302,11 @@ class KnowledgeGraph(NetworkxGraph):
                 )
     # Build a knowledge_graph dict from self.net
     def build_knowledge_graph(self):
+        """ Builds the KnowledgeGraph instance into a dictionary of "nodes" and "edges"
+
+        :return: A dict of "nodes" and "edges"
+        :rtype: dict
+        """
         kg = {
             "nodes": [],
             "edges": []
@@ -260,13 +324,28 @@ class KnowledgeGraph(NetworkxGraph):
 
     # Define rendering methods
     def render_force_graph_3d(self, **kwargs):
+        """ Renders a 3D force graph of the knowledge graph instance using three.js
+
+        :param title: Titles the force graph rendering. Defaults to :py:attr:`~graph_name` if set, or an automatically generated title.
+        :type title: str
+        """
         return force_graph.render3d(self, **kwargs)
     render_force_graph = render_force_graph_3d # alias
 
     def render_force_graph_2d(self, **kwargs):
+        """ Renders a 2D force graph of the knowledge graph instance
+
+        :param title: Titles the force graph rendering. Defaults to :py:attr:`~graph_name` if set, or an automatically generated title.
+        :type title: str
+        """
         return force_graph.render2d(self, **kwargs)
 
     def render_plotly_force_graph(self, title="Knowledge Graph"):
+        """ Renders a 2D force graph of the knowledge graph instance using Plotly
+
+        :param title: Titles the force graph rendering. Defaults to "Knowledge Graph".
+        :type title: str
+        """
         G = self.net.copy()
         pos = nx.spring_layout(G)
         for n, p in pos.items():
@@ -365,37 +444,93 @@ class KnowledgeGraph(NetworkxGraph):
         return iplot(fig)
 
     def render_node_table(self, columns=("name", "id", "type", "equivalent_identifiers")):
+        """ Renders a tabular view of the nodes in the knowledge graph
+
+        :param columns: A list/tuple of node properties that should be displayed in the table
+        :type columns: list, tuple
+        """
         return table_view.render_nodes(self, columns=columns)
     def render_edge_table(self, columns=("source_id", "target_id", "type", "weight")):
+        """ Renders a tabular view of the edges in the knowledge graph
+
+        :param columns: A list/tuple of edge properties that should be displayed in the table
+        :type columns: list, tuple
+        """
         return table_view.render_edges(self, columns=columns)
 
 
     """ Define helper methods for working with a knowledge graph """
     def get_nodes_by_property(self, property, value):
+        """ Selects nodes in the knowledge graph by a property
+
+        :param property: A node property
+        :type property: str
+        :param value: The value of the property to select nodes by
+
+        :return: A list of nodes
+        :rtype: list
+        """
         nodes = []
         for node in self.net.nodes(data=True):
             if property in node[1]["attr_dict"] and node[1]["attr_dict"][property] == value:
                 nodes.append(node[1]["attr_dict"])
         return nodes
     def get_edges_by_property(self, property, value):
+        """ Selects edges in the knowledge graph by a property
+
+        :param property: An edge property
+        :type property: str
+        :param value: The value of the property to select nodes by
+
+        :return: A list of edges
+        :rtype: list
+        """
         edges = []
         for edge in self.net.edges(data=True):
             if property in edge[2] and edge[2][property] == value:
                 edges.append(edge[2])
         return edges
     def get_node_by_name(self, name):
+        """ Selects a node by its name property
+
+        :param name: The name of the node
+        :type name: str
+
+        :return: A node or None
+        :rtype: dict, None
+        """
         nodes = self.get_nodes_by_property("name", name)
         if len(nodes) == 0:
             return None
         else:
             return nodes[0]
     def get_node_by_id(self, id):
+        """ Selects a node by its id property
+
+        :param id: The id of the node
+        :type name: str
+
+        :return: A node or None
+        :rtype: dict, None
+        """
         nodes = self.get_nodes_by_property("id", id)
         if len(nodes) == 0:
             return None
         else:
             return nodes[0]
     def get_edge(self, source, target, pred=None):
+        """ Selects an edge/edges from source to target
+
+        :param source: The source_id of the edge
+        :type source: str
+        :param target: The target_id of the edge
+        :type target: str
+        :param pred: The predicate of the edge.
+        :type pred: str
+
+        :return: If no predicate is specified, a list of edges is returned. If a predicate is specified, an edge or None is returned.
+        :rtype: list, dict, None
+        """
         # If `pred` is None, returns a list of all edges between `source` and `target`
         # Else returns single edge
         if pred == None:
@@ -413,29 +548,69 @@ class KnowledgeGraph(NetworkxGraph):
 
     """ Define graph operations (see https://networkx.github.io/documentation/stable/reference/algorithms/operators.html) """
     def simple_union(self, other_kg):
+        """ Returns the simple union of the knowledge graph and other_kg
+
+        :param other_kg: The other knowledge graph
+        :type other_kg: :class:`.KnowledgeGraph`
+        """
         # Returns a KnowledgeGraph of the simple union of self and other_kg (node sets do not have to be disjoint)
         return KnowledgeGraph(nx.compose(self.net, other_kg.net), sources=[self, other_kg])
     compose = simple_union # alias of simple_union
     def union(self, other_kg):
+        """ Returns the union of the knowledge graph and other_kg
+
+        :param other_kg: The other knowledge graph
+        :type other_kg: :class:`.KnowledgeGraph`
+        """
         # Returns a KnowledgeGraph of the union of self and other_kg  (node sets must be disjoint)
         return KnowledgeGraph(nx.union(self.net, other_kg.net))
     def disjoint_union(self, other_kg):
+        """ Returns the disjoint union of the knowledge graph and other_kg
+
+        :param other_kg: The other knowledge graph
+        :type other_kg: :class:`.KnowledgeGraph`
+        """
         # Returns a KnowledgeGraph of the disjoint union of self and other_kg
         return KnowledgeGraph(nx.disjoint_union(self.net, other_kg.net))
     def intersection(self, other_kg):
+        """ Returns the intersection of the knowledge graph and other_kg
+
+        :param other_kg: The other knowledge graph
+        :type other_kg: :class:`.KnowledgeGraph`
+        """
         # Returns a KnowledgeGraph containing only edges that exist in both self and other_kg
         return KnowledgeGraph(nx.intersection(self.net, other_kg.net))
     def difference(self, other_kg):
+        """ Returns the difference of the knowledge graph and other_kg
+
+        :param other_kg: The other knowledge graph
+        :type other_kg: :class:`.KnowledgeGraph`
+        """
         # Returns a KnowledgeGraph containing edges that exist in self but not in other_kg
         return KnowledgeGraph(nx.difference(self.net, other_kg.net))
     def symmetric_difference(self, other_kg):
+        """ Returns the symmetric difference of the knowledge graph and other_kg
+
+        :param other_kg: The other knowledge graph
+        :type other_kg: :class:`.KnowledgeGraph`
+        """
         # Returns a KnowledgeGraph containing edges that exist in self or other_kg but not both
         return KnowledgeGraph(nx.symmetric_difference(self.net, other_kg.net))
     def cartesian_product(self, other_kg):
+        """ Returns the cartesian product of the knowledge graph and other_kg
+
+        :param other_kg: The other knowledge graph
+        :type other_kg: :class:`.KnowledgeGraph`
+        """
         # Returns a KnowledgeGraph of the Cartesian product of self and other_kg
         return KnowledgeGraph(nx.cartesian_product(self.net, other_kg.net))
 
     def simple_difference(self, other_kg):
+        """ Returns the simple difference of the knowledge graph and other_kg
+
+        :param other_kg: The other knowledge graph
+        :type other_kg: :class:`.KnowledgeGraph`
+        """
         # Returns a KnowledgeGraph containing all nodes/edges in self that are not in other_kg
 
         # nx.create_empty_copy will return a MultiDiGraph with all nodes in self.net but 0 edges (retaining properties of nodes)
@@ -456,6 +631,13 @@ class KnowledgeGraph(NetworkxGraph):
         return new
 
     def simple_intersection(self, other_kg, edges=True):
+        """ Returns the simple intersection of the knowledge graph and other_kg
+
+        :param other_kg: The other knowledge graph
+        :type other_kg: :class:`.KnowledgeGraph`
+        :param edges: Performs the intersection on the edge sets as well
+        :type edges: bool
+        """
         # Returns a KnowledgeGraph containing only nodes/edges that exist in both self and other_kg
         # Default behavior is to do the intersection of both nodes and edges, but edge intersection may not be desireable
 
@@ -498,6 +680,11 @@ class KnowledgeGraph(NetworkxGraph):
         return self.simple_intersection(other_kg, edges=False)
 
     def simple_symmetric_difference(self, other_kg):
+        """ Returns the simple symmetric difference of the knowledge graph and other_kg
+
+        :param other_kg: The other knowledge graph
+        :type other_kg: :class:`.KnowledgeGraph`
+        """
         # Returns a KnowledgeGraph containing only nodes/edges that exist in self or other_kg but not both
 
         # Create a graph containing the symmetric difference of both node sets
@@ -558,8 +745,18 @@ class KnowledgeGraph(NetworkxGraph):
 
     # Override operators for graph operations
     def __add__(self, other):
+        """ Returns the simple union of the knowledge graph and other_kg
+
+        :param other_kg: The other knowledge graph
+        :type other_kg: :class:`.KnowledgeGraph`
+        """
         return self.simple_union(other)
     def __sub__(self, other):
+        """ Returns the simple difference of the knowledge graph and other_kg
+
+        :param other_kg: The other knowledge graph
+        :type other_kg: :class:`.KnowledgeGraph`
+        """
         return self.simple_difference(other)
     def __mul__(self, other):
         return self.cartesian_product(other)
