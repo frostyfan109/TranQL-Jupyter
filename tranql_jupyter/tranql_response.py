@@ -458,6 +458,33 @@ class KnowledgeGraph(NetworkxGraph):
         """
         return table_view.render_edges(self, columns=columns)
 
+    # Utility for getting available node/edge columns for the tabular view
+    def get_node_properties(self):
+        """ List all node properties inside of the knowledge graph.
+        Can help for choosing table viewer columns and for selecting nodes by property.
+
+        :return: List of node properties in the graph
+        :rtype: list
+        """
+        properties = []
+        for node in self.net.nodes(data=True):
+            for property in node[1]["attr_dict"]:
+                if property not in properties:
+                    properties.append(property)
+        return properties
+    def get_edge_properties(self):
+        """ List all edge properties inside of the knowledge graph.
+        Can help for choosing table viewer columns and for selecting edges by property.
+
+        :return: List of edge properties in the graph
+        :rtype: list
+        """
+        properties = []
+        for edge in self.net.edges(data=True):
+            for property in edge[2]:
+                if property not in properties:
+                    properties.append(property)
+        return properties
 
     """ Define helper methods for working with a knowledge graph """
     def get_nodes_by_property(self, property, value):

@@ -252,7 +252,7 @@ and converts it into a knowledge graph instance</p>
 <dd><p>Makes a Plotly graph detailing how many nodes of each type there are in the graph</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>*graphs</strong> – <p>Varargs of (title, <a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a>) or just <a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a> if <code class="xref py py-obj docutils literal notranslate"><span class="pre">graph_name</span></code> is set</p>
+<dd class="field-odd"><p><strong>*graphs</strong> – <p>Varargs of (title, <a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a>) or just <a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a> if <code class="xref py py-attr docutils literal notranslate"><span class="pre">graph_name</span></code> is set</p>
 </p>
 </dd>
 </dl>
@@ -346,6 +346,36 @@ and converts it into a knowledge graph instance</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>columns</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a>) – A list/tuple of edge properties that should be displayed in the table</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tranql_jupyter.tranql_response.KnowledgeGraph.get_node_properties">
+<code class="sig-name descname">get_node_properties</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tranql_jupyter.tranql_response.KnowledgeGraph.get_node_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>List all node properties inside of the knowledge graph.
+Can help for choosing table viewer columns and for selecting nodes by property.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of node properties in the graph</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)">list</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tranql_jupyter.tranql_response.KnowledgeGraph.get_edge_properties">
+<code class="sig-name descname">get_edge_properties</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tranql_jupyter.tranql_response.KnowledgeGraph.get_edge_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>List all edge properties inside of the knowledge graph.
+Can help for choosing table viewer columns and for selecting edges by property.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of edge properties in the graph</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)">list</a></p>
 </dd>
 </dl>
 </dd></dl>
