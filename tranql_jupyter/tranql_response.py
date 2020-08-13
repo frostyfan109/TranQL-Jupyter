@@ -46,11 +46,14 @@ class KnowledgeGraph(NetworkxGraph):
     :vartype graph_name: str, None
     :ivar net: Internal NetworkX instance of the graph. Should be used for any NetworkX-related operations. Modifications will result in mutation of the graph.
     :vartype net: :class:`networkx.MultiDiGraph`
+    :ivar node_click_history: List containing the nodes clicked in force graph renderings. Can get the most recently clicked node `node_click_history[-1]` with
+        :py:attr:`~.selected_graph_node`
+    :vartype node_click_history: list
     """
     def __init__(self, knowledge_graph, sources=None):
         """
         :param knowledge_graph: Either a dict containing the keys "nodes" and "edges" or a networkx.MultiDiGraph instance
-            with node/edge attributes structured in the same manner as done in :func:`~.KnowledgeGraph.build_networkx_graph`
+            with node/edge attributes structured in the same manner as done in :py:meth:`~.build_networkx_graph`
         :type knowledge_graph: dict, :class:`networkx.MultiDiGraph`
         """
         super().__init__()
@@ -66,6 +69,8 @@ class KnowledgeGraph(NetworkxGraph):
 
         # Garbage parameter that was being experimented with and never got removed (does nothing)
         self.sources = sources
+
+        self.node_click_history = []
 
 
     @classmethod
@@ -572,6 +577,16 @@ class KnowledgeGraph(NetworkxGraph):
                 return self.net[source][target][pred]
             except KeyError:
                 return None
+
+    """ Force graph visualizations nodes clicked """
+    @property
+    def selected_graph_node(self):
+        """ Read-only property that returns the most recently clicked node in the force graph visualization.
+
+        :return: A node or None if no nodes have been clicked
+        :rtype: dict, None
+        """
+        return self.node_click_history[-1] if len(self.node_click_history) > 0 else None
 
     """ Define graph operations (see https://networkx.github.io/documentation/stable/reference/algorithms/operators.html) """
     def simple_union(self, other_kg):

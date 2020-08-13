@@ -1,3 +1,4 @@
+import IPython
 from IPython.display import display, HTML
 import json
 try:
@@ -55,6 +56,27 @@ def render(knowledge_graph, mode, title=None, width=None, height=400):
             "name": edge["type"]
         })
 
+    def target_func(comm, open_msg):
+        print("Creating comm")
+        @comm.on_msg
+        def _recv(msg):
+            events = msg["content"]["data"]
+            for event in events:
+                data = events[event]
+                if event == "node_clicked":
+                    d3_node = data
+                    node_id = d3_node["id"]
+
+                    node = knowledge_graph.get_node_by_id(node_id)
+                    knowledge_graph.node_click_history.append(node)
+
+                if event == "close_comm":
+                    comm.close()
+                else:
+                    raise Exception(f'Error in Javascript->Python Jupyter Comm message: unknown event type "{event}".')
+
+    IPython.get_ipython().kernel.comm_manager.register_target(id, target_func)
+
     return display(HTML("""
 <div class="%s title-container"></div>
 <div class="%s graph-container"></div>
@@ -67,15 +89,16 @@ def render(knowledge_graph, mode, title=None, width=None, height=400):
 <script>
 require(['%s', 'https://cdn.jsdelivr.net/npm/element-resize-detector@1.2.1/dist/element-resize-detector.min.js'], function(ForceGraph, resizeMaker) {
     const data = %s;
+    const id = "%s";
     const resizeDetector = resizeMaker({ strategy: 'scroll' });
-    const container = document.querySelector(".%s.graph-container");
+    const container = document.querySelector(`.${id}.graph-container`);
     container.style.overflow = "hidden";
     const width = %s;
     const height = %s;
     if (width !== null) container.style.width = width + "px";
     if (height !== null) container.style.height = height + "px";
 
-    const titleElement = document.querySelector(".%s.title-container");
+    const titleElement = document.querySelector(`.${id}.title-container`);
 
     const title = document.createElement("span");
     title.textContent = "%s";
@@ -94,15 +117,24 @@ require(['%s', 'https://cdn.jsdelivr.net/npm/element-resize-detector@1.2.1/dist/
         graph.width(container.querySelector("canvas").offsetWidth);
         // graph.height(container.querySelector("canvas").offsetHeight);
     });
-    window.graph = graph;
+
+    /* Create Jupyter Comm connection with Python backend */
+    const comm = Jupyter.notebook.kernel.comm_manager.new_comm(id);
+    graph.onNodeClick((node) => {
+        comm.send({"node_clicked": node});
+    });
+
     // Prevent a memory leak by emptying force graph upon unmount
     // also uninstall the detector
+    // also close Comm socket
     // Could use a MutationObserver but it's not really worth the effort,
     // since uninstalling isn't time sensitive, it just has to get done eventually
     const removedInterval = setInterval(() => {
         if (!document.contains(container)) {
             resizeDetector.uninstall(container);
             graph.graphData({nodes: [], links: []});
+            comm.send({"close_comm": null})
+            comm.close();
             clearInterval(removedInterval);
         }
     }, 1000);
@@ -118,7 +150,6 @@ require(['%s', 'https://cdn.jsdelivr.net/npm/element-resize-detector@1.2.1/dist/
             id,
             json.dumps(width),
             json.dumps(height),
-            id,
             title
         )
     ))
