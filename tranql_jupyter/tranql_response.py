@@ -169,7 +169,7 @@ class KnowledgeGraph(NetworkxGraph):
     def plot_node_type_distributions(cls, *graphs):
         """ Makes a Plotly graph detailing how many nodes of each type there are in the graph
 
-        :param *graphs: Varargs of (title, :class:`.KnowledgeGraph`) or just :class:`.KnowledgeGraph` if :py:attr:`~graph_name` is set
+        :param *graphs: Varargs of (:class:`.KnowledgeGraph`, title) or just :class:`.KnowledgeGraph` if :py:attr:`~graph_name` is set
         :type *graphs: list
         """
         return cls.plot_type_distributions("nodes", graphs)
@@ -178,7 +178,7 @@ class KnowledgeGraph(NetworkxGraph):
     def plot_edge_type_distributions(cls, *graphs):
         """ Makes a Plotly graph detailing how many edges of each type there are in the graph
 
-        :param *graphs: Varargs of (title, :class:`.KnowledgeGraph`) or just :class:`.KnowledgeGraph` if :py:attr:`~graph_name` is set
+        :param *graphs: Varargs of (:class:`.KnowledgeGraph`, title) or just :class:`.KnowledgeGraph` if :py:attr:`~graph_name` is set
         :type *graphs: list
         """
         return cls.plot_type_distributions("edges", graphs)
@@ -758,26 +758,73 @@ class KnowledgeGraph(NetworkxGraph):
 
     """ Define NetComp operations (see: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0228728, https://github.com/peterewills/NetComp) """
     def deltacon0(self, other_kg, **kwargs):
+        """ A NetComp operation returning the DeltaCon0 between `self` and `other_kg`. This algorithm is detailed in "A Principled Massive-Graph Similarity Function".
+
+        :param other_kg: The other knowledge graph
+        :type other_kg: :class:`.KnowledgeGraph`
+
+        :return: The Frobenius norm of the element-wise square root of the fast belief propogation matrix (as described in NetComp's docs)
+        :rtype: float
+        """
         A, B = make_adjacency_matrices(self, other_kg)
         return nc.deltacon0(A, B, **kwargs)
 
     def vertex_edge_distance(self, other_kg):
+        """ A NetComp operation which transforms the vertex-edge overlap of `self` and `other_kg` into a distance via D = (1-VEO)/VEO, where VEO is vertex-edge overlap.
+
+        :param other_kg: The other knowledge graph
+        :type other_kg: :class:`.KnowledgeGraph`
+
+        :return: The vertex-edge distance between `self` and `other_kg`.
+        :rtype: float
+        """
         A, B = make_adjacency_matrices(self, other_kg)
         return nc.vertex_edge_distance(A, B)
 
     def lambda_dist(self, other_kg, **kwargs):
+        """ A NetComp operation returning the lambda distance between `self` and `other_kg`.
+        This operation is very complicated and is better described by NetComp's docs: https://github.com/peterewills/NetComp/blob/master/netcomp/distance/exact.py#L123
+
+        :param other_kg: The other knowledge graph
+        :type other_kg: :class:`.KnowledgeGraph`
+
+        :return: The lambda distance between `self` and `other_kg`
+        :rtype: float
+        """
         A, B = make_adjacency_matrices(self, other_kg)
         return nc.lambda_dist(A, B, **kwargs)
 
     def resistance_distance(self, other_kg, **kwargs):
+        """ A NetComp operation returning the resistance distance between `self` and `other_kg`.
+        See NetComp's docs for keyword arguments: https://github.com/peterewills/NetComp/blob/master/netcomp/distance/exact.py#L225
+
+        :param other_kg: The other knowledge graph
+        :type other_kg: :class:`.KnowledgeGraph`
+
+        :return: The resistance distance of `self` and `other_kg`. If the kwarg `attributed` is True (default=False),
+            then the vector distance per node is returned
+        :rtype: float, :class:`numpy.array`
+        """
         A, B = make_adjacency_matrices(self, other_kg)
         return nc.resistance_distance(A, B, **kwargs)
 
     def conductance_matrix(self):
+        """ A NetComp function which returns the conductance matrix of `self`.
+        See NetComp's docs for a greater explanation: https://github.com/peterewills/NetComp/blob/master/netcomp/linalg/resistance.py#L190
+
+        :return: A matrix of pairwise conductances between nodes
+        :rtype: :class:`numpy.ndarray`
+        """
         A, = make_adjacency_matrices(self) # make_adjacency_matrices returns a list, so trailing comma is shorthand of [0] at end
         return nc.conductance_matrix(A)
 
     def resistance_matrix(self, **kwargs):
+        """ A NetComp function which returns the resistance matrix of `self`.
+        See NetComp's docs for kwargs/notes: https://github.com/peterewills/NetComp/blob/master/netcomp/linalg/resistance.py#L19
+
+        :return: A matrix of pairwise resistances between nodes
+        :rtype: :class:`numpy.ndarray`
+        """
         A, = make_adjacency_matrices(self)
         return nc.resistance_matrix(A, **kwargs)
 

@@ -254,7 +254,7 @@ and converts it into a knowledge graph instance</p>
 <dd><p>Makes a Plotly graph detailing how many nodes of each type there are in the graph</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>*graphs</strong> – <p>Varargs of (title, <a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a>) or just <a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a> if <code class="xref py py-attr docutils literal notranslate"><span class="pre">graph_name</span></code> is set</p>
+<dd class="field-odd"><p><strong>*graphs</strong> – <p>Varargs of (<a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a>, title) or just <a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a> if <code class="xref py py-attr docutils literal notranslate"><span class="pre">graph_name</span></code> is set</p>
 </p>
 </dd>
 </dl>
@@ -266,7 +266,7 @@ and converts it into a knowledge graph instance</p>
 <dd><p>Makes a Plotly graph detailing how many edges of each type there are in the graph</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>*graphs</strong> – <p>Varargs of (title, <a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a>) or just <a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a> if <code class="xref py py-attr docutils literal notranslate"><span class="pre">graph_name</span></code> is set</p>
+<dd class="field-odd"><p><strong>*graphs</strong> – <p>Varargs of (<a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a>, title) or just <a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a> if <code class="xref py py-attr docutils literal notranslate"><span class="pre">graph_name</span></code> is set</p>
 </p>
 </dd>
 </dl>
@@ -611,6 +611,107 @@ Can help for choosing table viewer columns and for selecting edges by property.<
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>other_kg</strong> (<a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a>) – The other knowledge graph</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tranql_jupyter.tranql_response.KnowledgeGraph.deltacon0">
+<code class="sig-name descname">deltacon0</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other_kg</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tranql_jupyter.tranql_response.KnowledgeGraph.deltacon0" title="Permalink to this definition">¶</a></dt>
+<dd><p>A NetComp operation returning the DeltaCon0 between <cite>self</cite> and <cite>other_kg</cite>. This algorithm is detailed in “A Principled Massive-Graph Similarity Function”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>other_kg</strong> (<a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a>) – The other knowledge graph</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The Frobenius norm of the element-wise square root of the fast belief propogation matrix (as described in NetComp’s docs)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tranql_jupyter.tranql_response.KnowledgeGraph.vertex_edge_distance">
+<code class="sig-name descname">vertex_edge_distance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other_kg</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tranql_jupyter.tranql_response.KnowledgeGraph.vertex_edge_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>A NetComp operation which transforms the vertex-edge overlap of <cite>self</cite> and <cite>other_kg</cite> into a distance via D = (1-VEO)/VEO, where VEO is vertex-edge overlap.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>other_kg</strong> (<a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a>) – The other knowledge graph</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The vertex-edge distance between <cite>self</cite> and <cite>other_kg</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tranql_jupyter.tranql_response.KnowledgeGraph.lambda_dist">
+<code class="sig-name descname">lambda_dist</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other_kg</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tranql_jupyter.tranql_response.KnowledgeGraph.lambda_dist" title="Permalink to this definition">¶</a></dt>
+<dd><p>A NetComp operation returning the lambda distance between <cite>self</cite> and <cite>other_kg</cite>.
+This operation is very complicated and is better described by NetComp’s docs: <a class="reference external" href="https://github.com/peterewills/NetComp/blob/master/netcomp/distance/exact.py#L123">https://github.com/peterewills/NetComp/blob/master/netcomp/distance/exact.py#L123</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>other_kg</strong> (<a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a>) – The other knowledge graph</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The lambda distance between <cite>self</cite> and <cite>other_kg</cite></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tranql_jupyter.tranql_response.KnowledgeGraph.resistance_distance">
+<code class="sig-name descname">resistance_distance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other_kg</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tranql_jupyter.tranql_response.KnowledgeGraph.resistance_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>A NetComp operation returning the resistance distance between <cite>self</cite> and <cite>other_kg</cite>.
+See NetComp’s docs for keyword arguments: <a class="reference external" href="https://github.com/peterewills/NetComp/blob/master/netcomp/distance/exact.py#L225">https://github.com/peterewills/NetComp/blob/master/netcomp/distance/exact.py#L225</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>other_kg</strong> (<a class="reference internal" href="#tranql_jupyter.tranql_response.KnowledgeGraph" title="tranql_jupyter.tranql_response.KnowledgeGraph"><code class="xref py py-class docutils literal notranslate"><span class="pre">KnowledgeGraph</span></code></a>) – The other knowledge graph</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The resistance distance of <cite>self</cite> and <cite>other_kg</cite>. If the kwarg <cite>attributed</cite> is True (default=False),
+then the vector distance per node is returned</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float, <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.array</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tranql_jupyter.tranql_response.KnowledgeGraph.conductance_matrix">
+<code class="sig-name descname">conductance_matrix</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tranql_jupyter.tranql_response.KnowledgeGraph.conductance_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>A NetComp function which returns the conductance matrix of <cite>self</cite>.
+See NetComp’s docs for a greater explanation: <a class="reference external" href="https://github.com/peterewills/NetComp/blob/master/netcomp/linalg/resistance.py#L190">https://github.com/peterewills/NetComp/blob/master/netcomp/linalg/resistance.py#L190</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A matrix of pairwise conductances between nodes</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="tranql_jupyter.tranql_response.KnowledgeGraph.resistance_matrix">
+<code class="sig-name descname">resistance_matrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#tranql_jupyter.tranql_response.KnowledgeGraph.resistance_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>A NetComp function which returns the resistance matrix of <cite>self</cite>.
+See NetComp’s docs for kwargs/notes: <a class="reference external" href="https://github.com/peterewills/NetComp/blob/master/netcomp/linalg/resistance.py#L19">https://github.com/peterewills/NetComp/blob/master/netcomp/linalg/resistance.py#L19</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A matrix of pairwise resistances between nodes</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></p>
 </dd>
 </dl>
 </dd></dl>
